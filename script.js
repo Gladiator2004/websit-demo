@@ -581,7 +581,7 @@ const projectGallery = document.getElementById('project-gallery');
 
 // Project data with detailed information
 const projectData = {
-    'solar-energy': {
+    'waste-heat-recovery': {
         name: 'Waste Heat Recovery',
         heroImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
         items: [
@@ -597,7 +597,7 @@ const projectData = {
             }
         ]
     },
-    'wind-energy': {
+    'rocket-control-system': {
         name: 'Rocket Control System',
         heroImage: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
         items: [
@@ -613,7 +613,7 @@ const projectData = {
             }
         ]
     },
-    'hydroelectric': {
+    'project-3': {
         name: 'Coming Soon',
         heroImage: 'https://images.unsplash.com/photo-1661956601031-4cf09efadfce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxNnx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80',
         items: [
@@ -629,7 +629,7 @@ const projectData = {
             }
         ]
     },
-    'geothermal': {
+    'project-4': {
         name: 'Coming Soon',
         heroImage: 'https://images.unsplash.com/photo-1677688010633-138cea460828?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwyMHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80',
         items: [
@@ -645,45 +645,13 @@ const projectData = {
             }
         ]
     },
-    'smart-grid': {
+    'project-5': {
         name: 'Coming Soon',
         heroImage: 'https://images.unsplash.com/photo-1677618031630-768ddc4f4fad?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwyNHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80',
         items: [
             {
                 title: 'Project in Development',
                 image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-                stats: [
-                    { number: 'TBD', label: 'Coming Soon' },
-                    { number: 'TBD', label: 'Coming Soon' },
-                    { number: 'TBD', label: 'Coming Soon' }
-                ]
-            }
-        ]
-    },
-    'battery-storage': {
-        name: 'Coming Soon',
-        heroImage: 'https://images.unsplash.com/photo-1661956601349-f61c959a8fd4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwzMXx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80',
-        items: [
-            {
-                title: 'Project in Development',
-                image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-                stats: [
-                    { number: 'TBD', label: 'Coming Soon' },
-                    { number: 'TBD', label: 'Coming Soon' },
-                    { number: 'TBD', label: 'Coming Soon' }
-                ]
-            }
-        ]
-    },
-    'biomass-energy': {
-        name: 'Coming Soon',
-        heroImage: 'https://images.unsplash.com/photo-1677629828024-7793ff7d9403?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw1OHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80',
-        items: [
-            {
-                title: 'Project in Development',
-                image: 'https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
                 stats: [
                     { number: 'TBD', label: 'Coming Soon' },
@@ -711,9 +679,6 @@ function initializeProjectClicks() {
             const projectId = img.dataset.projectId;
             const clickedImageSrc = img.src;
             
-            // Debug: Check if function is being called
-            console.log('openProject called for:', projectId, 'Data exists:', !!projectData[projectId]);
-            
             if (projectId && projectData[projectId]) {
                 // Get the position and size of the clicked image
                 const rect = img.getBoundingClientRect();
@@ -726,22 +691,16 @@ function initializeProjectClicks() {
                 openProjectDetail(projectId, imageData);
                 // Update URL without page reload
                 history.pushState({ projectId }, '', `#${projectId}`);
-            } else {
-                console.log('Project not found - ID:', projectId, 'Available projects:', Object.keys(projectData));
             }
         }
         
         // Desktop mouse events - simplified for single click
         img.addEventListener('click', (e) => {
-            console.log('Click detected - isDragging:', isDragging, 'hasMoved:', hasMoved);
             // Only handle if not dragging the track and the local mouse hasn't moved significantly
             if (!isDragging && !hasMoved) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Click accepted, calling openProject');
                 openProject();
-            } else {
-                console.log('Click rejected - isDragging:', isDragging, 'hasMoved:', hasMoved);
             }
         });
         
