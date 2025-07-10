@@ -357,6 +357,7 @@ lightbox.addEventListener('click', (e) => {
 
 // Sliding Image Track functionality
 const track = document.getElementById("image-track");
+const projectsContainer = document.querySelector(".projects-container");
 const slideFriction = 1;
 let isDragging = false;
 
@@ -379,11 +380,17 @@ if (track) {
         if (track.dataset.mouseDownAt === "0") return;
         
         const deltaX = Math.abs(e.clientX - mouseStartX);
-        
         // If moved more than 5px, consider it a drag
         if (deltaX > 5 && !mouseHasMoved) {
             mouseHasMoved = true;
             isDragging = true;
+            // Add dragging classes to hide overlays and instruction
+            if (projectsContainer) {
+                projectsContainer.classList.add('dragging');
+            }
+            if (track) {
+                track.classList.add('sliding');
+            }
         }
         
         if (!isDragging) return;
@@ -428,6 +435,13 @@ if (track) {
                 track.dataset.prevPercentage = track.dataset.percentage || 0;
                 mouseHasMoved = false;
                 mouseStartX = 0;
+                // Remove dragging classes
+                if (projectsContainer) {
+                    projectsContainer.classList.remove('dragging');
+                }
+                if (track) {
+                    track.classList.remove('sliding');
+                }
             }, 100); // Small delay to prevent click events immediately after drag
         }
     });
@@ -458,6 +472,13 @@ if (track) {
         if (deltaX > 10 && !trackHasMoved) {
             trackHasMoved = true;
             isDragging = true;
+            // Add dragging classes to hide overlays and instruction
+            if (projectsContainer) {
+                projectsContainer.classList.add('dragging');
+            }
+            if (track) {
+                track.classList.add('sliding');
+            }
             // Prevent any pending image tap actions
             document.querySelectorAll('.project-image').forEach(img => {
                 img.classList.remove('touched');
@@ -508,9 +529,47 @@ if (track) {
                 trackHasMoved = false;
                 trackTouchStartX = 0;
                 trackTouchStartTime = 0;
+                // Remove dragging classes
+                if (projectsContainer) {
+                    projectsContainer.classList.remove('dragging');
+                }
+                if (track) {
+                    track.classList.remove('sliding');
+                }
             }, 150); // Slightly longer delay for touch
         }
     });
+}
+
+// Text scramble animation function
+function animateTextScramble(element, finalText) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let iteration = 0;
+    let interval = null;
+    
+    // Clear any existing interval
+    clearInterval(interval);
+    
+    // Set the data attribute for the final text
+    element.dataset.value = finalText;
+    
+    interval = setInterval(() => {
+        element.innerText = finalText
+            .split("")
+            .map((letter, index) => {
+                if (index < iteration) {
+                    return finalText[index];
+                }
+                return letters[Math.floor(Math.random() * 26)];
+            })
+            .join("");
+        
+        if (iteration >= finalText.length) {
+            clearInterval(interval);
+        }
+        
+        iteration += 1 / 3;
+    }, 30);
 }
 
 // Project Detail Page Functionality
@@ -649,9 +708,11 @@ function initializeProjectClicks() {
         
         // Function to handle project opening
         function openProject() {
-            console.log('Opening project for image:', img.dataset.projectId); // Debug log
             const projectId = img.dataset.projectId;
             const clickedImageSrc = img.src;
+            
+            // Debug: Check if function is being called
+            console.log('openProject called for:', projectId, 'Data exists:', !!projectData[projectId]);
             
             if (projectId && projectData[projectId]) {
                 // Get the position and size of the clicked image
@@ -665,16 +726,22 @@ function initializeProjectClicks() {
                 openProjectDetail(projectId, imageData);
                 // Update URL without page reload
                 history.pushState({ projectId }, '', `#${projectId}`);
+            } else {
+                console.log('Project not found - ID:', projectId, 'Available projects:', Object.keys(projectData));
             }
         }
         
         // Desktop mouse events - simplified for single click
         img.addEventListener('click', (e) => {
-            // Only handle if not dragging the track
-            if (!isDragging) {
+            console.log('Click detected - isDragging:', isDragging, 'hasMoved:', hasMoved);
+            // Only handle if not dragging the track and the local mouse hasn't moved significantly
+            if (!isDragging && !hasMoved) {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('Click accepted, calling openProject');
                 openProject();
+            } else {
+                console.log('Click rejected - isDragging:', isDragging, 'hasMoved:', hasMoved);
             }
         });
         
@@ -696,9 +763,16 @@ function initializeProjectClicks() {
             }
         });
         
+        img.addEventListener('mouseup', (e) => {
+            // Reset movement tracking after a short delay
+            setTimeout(() => {
+                touchStartTime = 0;
+                hasMoved = false;
+            }, 50);
+        });
+        
         // Mobile touch events - simplified and more reliable
         img.addEventListener('touchstart', (e) => {
-            console.log('Touch start on image:', img.dataset.projectId); // Debug log
             e.preventDefault(); // Prevent default touch behavior
             touchStartTime = Date.now();
             touchStartX = e.touches[0].clientX;
@@ -730,7 +804,6 @@ function initializeProjectClicks() {
         });
         
         img.addEventListener('touchend', (e) => {
-            console.log('Touch end on image:', img.dataset.projectId, 'isDragging:', isDragging); // Debug log
             e.preventDefault(); // Prevent default touch behavior
             const touchDuration = Date.now() - touchStartTime;
             
@@ -739,14 +812,11 @@ function initializeProjectClicks() {
             
             // Check if it's a valid tap (not a swipe, not dragging track, and reasonable duration)
             if (!hasMoved && !isDragging && touchDuration < 500 && touchDuration > 50) {
-                console.log('Valid tap detected, opening project'); // Debug log
                 // Small delay to distinguish from potential double-tap
                 touchTimeout = setTimeout(() => {
                     openProject();
                     touchTimeout = null;
                 }, 100);
-            } else {
-                console.log('Tap cancelled - hasMoved:', hasMoved, 'isDragging:', isDragging, 'duration:', touchDuration);
             }
             
             // Reset
@@ -828,7 +898,6 @@ function openProjectDetail(projectId, imageData = null) {
         
         // Hide title and content initially
         document.querySelector('.project-title-overlay').style.opacity = '0';
-        document.querySelector('.project-title-overlay').style.transform = 'translate(-50%, -50%) translateY(30px)';
         document.querySelector('.project-content').style.opacity = '0';
         document.querySelector('.project-content').style.transform = 'translateY(50px)';
         
@@ -858,12 +927,15 @@ function openProjectDetail(projectId, imageData = null) {
                 projectHeroImg.style.filter = '';
                 projectHeroImg.style.borderRadius = '';
                 
-                // Animate title in with smooth transition
+                // Show title and start scramble animation
                 setTimeout(() => {
                     const titleOverlay = document.querySelector('.project-title-overlay');
-                    titleOverlay.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    const titleElement = titleOverlay.querySelector('.cyberpunk-title');
+                    
                     titleOverlay.style.opacity = '1';
-                    titleOverlay.style.transform = 'translate(-50%, -50%)';
+                    
+                    // Start text scramble animation immediately
+                    animateTextScramble(titleElement, project.name);
                 }, 200);
                 
                 // Animate content in after title
@@ -896,11 +968,13 @@ function openProjectDetail(projectId, imageData = null) {
             projectDetailPage.style.opacity = '1';
             
             const titleOverlay = document.querySelector('.project-title-overlay');
+            const titleElement = titleOverlay.querySelector('.cyberpunk-title');
             const content = document.querySelector('.project-content');
             
-            titleOverlay.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
             titleOverlay.style.opacity = '1';
-            titleOverlay.style.transform = 'translate(-50%, -50%)';
+            
+            // Start text scramble animation immediately
+            animateTextScramble(titleElement, project.name);
             
             content.style.transition = 'opacity 1.0s ease, transform 1.0s cubic-bezier(0.16, 1, 0.3, 1)';
             content.style.opacity = '1';
@@ -956,9 +1030,8 @@ function closeProjectDetail() {
         content.style.transform = 'translateY(50px)';
         
         setTimeout(() => {
-            titleOverlay.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+            titleOverlay.style.transition = 'opacity 0.6s ease';
             titleOverlay.style.opacity = '0';
-            titleOverlay.style.transform = 'translate(-50%, -50%) translateY(30px)';
         }, 200);
         
         // Wait for content to fade, then start image contraction
@@ -1028,7 +1101,7 @@ function closeProjectDetail() {
                     });
                     
                     // Reset text transforms
-                    document.querySelector('.project-title-overlay').style.transform = 'translate(-50%, -50%) translateY(30px)';
+                    document.querySelector('.project-title-overlay').style.opacity = '0';
                     document.querySelector('.project-content').style.transform = '';
                     
                     // Clear stored data
@@ -1049,9 +1122,8 @@ function closeProjectDetail() {
         content.style.opacity = '0';
         content.style.transform = 'translateY(50px)';
         
-        titleOverlay.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+        titleOverlay.style.transition = 'opacity 0.6s ease';
         titleOverlay.style.opacity = '0';
-        titleOverlay.style.transform = 'translate(-50%, -50%) translateY(30px)';
         
         projectDetailPage.style.opacity = '0';
         
@@ -1078,7 +1150,7 @@ function closeProjectDetail() {
             });
             
             // Reset text transforms
-            document.querySelector('.project-title-overlay').style.transform = 'translate(-50%, -50%) translateY(30px)';
+            document.querySelector('.project-title-overlay').style.opacity = '0';
             document.querySelector('.project-content').style.transform = '';
         }, 800);
     }
@@ -1113,4 +1185,3 @@ window.addEventListener('load', () => {
 document.addEventListener('DOMContentLoaded', () => {
     initializeProjectClicks();
 });
-
